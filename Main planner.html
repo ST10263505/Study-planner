@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Study Planner Dashboard</title>
+  <link rel="stylesheet" href="styler.css">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', 'Inter', sans-serif;
+      background-color: #f0f2f5;
+    }
+
+    .container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 240px;
+      background-color: #002B5B;
+      color: white;
+      padding: 2rem 1rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar h2 {
+      font-size: 1.6rem;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .sidebar a {
+      color: white;
+      text-decoration: none;
+      padding: 0.6rem 1rem;
+      margin: 0.5rem 0;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+
+    .sidebar a:hover {
+      background-color: #01457E;
+    }
+
+    .content {
+      flex: 1;
+      padding: 2rem;
+    }
+
+    .banner {
+      background-image: url('https://images.unsplash.com/photo-1571260899304-425eee4c7efc');
+      background-size: cover;
+      background-position: center;
+      height: 180px;
+      border-radius: 12px;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      padding-left: 2rem;
+      color: white;
+      box-shadow: inset 0 0 0 1000px rgba(0,0,0,0.4);
+    }
+
+    .banner h1 {
+      font-size: 2rem;
+      margin: 0;
+    }
+
+    .card {
+      background: white;
+      border-radius: 10px;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .card-header {
+      padding: 1rem;
+      background-color: #005B96;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+      border-radius: 10px 10px 0 0;
+    }
+
+    .card-body {
+      padding: 1rem;
+      border-top: 1px solid #ccc;
+      max-height: 1000px;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    .collapsed .card-body {
+      max-height: 0;
+      padding: 0 1rem;
+      overflow: hidden;
+    }
+
+#chatbot-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 320px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  font-family: 'Segoe UI', sans-serif;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 9999;
+}
+
+#chatbot-header {
+  background: var(--primary-color, #005B96);
+  color: white;
+  padding: 0.75rem;
+  font-weight: bold;
+}
+
+#chatbot-messages {
+  height: 200px;
+  padding: 0.5rem;
+  overflow-y: auto;
+  font-size: 0.9rem;
+}
+
+#chatbot-input {
+  display: flex;
+  border-top: 1px solid #ccc;
+}
+
+#chatbot-input input {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  outline: none;
+}
+
+#chatbot-input button {
+  background: var(--primary-color, #005B96);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+#chat-toggle-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--primary-color, #005B96);
+  color: white;
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 50px;
+  cursor: pointer;
+  z-index: 9998;
+}
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <h2>📘 MyPlanner</h2>
+      <a href="Main planner.html">🏠 Home Page</a>
+      <a href="calendar.html">📅 Calendar</a>
+      <a href="Document Management.html">📂 Documents</a>
+      <a href="collaboration.html">👥 Collaboration</a>
+      <a href="integrations.html">🔗 Integrations</a>
+      <a href="index.html">🔒 Log Out</a>
+    </aside>
+    <main class="content">
+      <div class="banner">
+        <h1>Welcome back! Plan your week and stay productive.</h1>
+      <div class="theme-toggle">
+  <label for="theme-select">🎨 Theme:</label>
+  <select id="theme-select">
+    <option value="#005B96">Blue</option>
+    <option value="#2E8B57">Green</option>
+    <option value="#6A5ACD">Purple</option>
+    <option value="#D2691E">Orange</option>
+    <option value="#333333">Dark</option>
+  </select>
+</div>
+</div>
+
+      <div class="card collapsible">
+        <div class="card-header" onclick="toggleCard(this)">📅 Study Calendar ▼</div>
+        <div class="card-body">
+          <label for="study-date">Date:</label>
+          <input type="date" id="study-date">
+          <label for="study-topic">Topic:</label>
+          <input type="text" id="study-topic" placeholder="e.g., Economics - Chapter 4">
+          <button onclick="addCalendarItem()">Add Session</button>
+          <ul id="calendar-list"></ul>
+        </div>
+      </div>
+
+      <div class="card collapsible">
+        <div class="card-header" onclick="toggleCard(this)">✅ To-Do List ▼</div>
+        <div class="card-body">
+          <input type="text" id="todo-task" placeholder="e.g., Complete reading">
+          <button onclick="addTask()">Add Task</button>
+          <ul id="task-list"></ul>
+        </div>
+      </div>
+
+      <div class="card collapsible">
+        <div class="card-header" onclick="toggleCard(this)">🎯 Study Goals ▼</div>
+        <div class="card-body">
+          <textarea id="goals-input" placeholder="List your weekly or semester goals..." rows="4"></textarea>
+          <button onclick="saveGoals()">Save Goals</button>
+          <p id="goals-output"></p>
+        </div>
+      </div>
+
+      <div class="card collapsible">
+        <div class="card-header" onclick="toggleCard(this)">📊 Productivity Summary ▼</div>
+        <div class="card-body">
+          <p>Tasks Completed: <span id="done-count">0</span></p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    let taskCount = 0;
+
+    function addCalendarItem() {
+      const date = document.getElementById("study-date").value;
+      const topic = document.getElementById("study-topic").value;
+      if (date && topic) {
+        const entry = document.createElement("li");
+        entry.textContent = `${date}: ${topic}`;
+        document.getElementById("calendar-list").appendChild(entry);
+        document.getElementById("study-topic").value = "";
+      }
+    }
+
+    function addTask() {
+      const taskText = document.getElementById("todo-task").value;
+      if (taskText) {
+        const li = document.createElement("li");
+        li.textContent = taskText;
+        li.onclick = function () {
+          li.classList.toggle("completed");
+          if (li.classList.contains("completed")) taskCount++;
+          else taskCount--;
+          document.getElementById("done-count").textContent = taskCount;
+        };
+        document.getElementById("task-list").appendChild(li);
+        document.getElementById("todo-task").value = "";
+      }
+    }
+
+    function saveGoals() {
+      const text = document.getElementById("goals-input").value;
+      document.getElementById("goals-output").textContent = text;
+    }
+
+    function toggleCard(header) {
+      const card = header.parentElement;
+      card.classList.toggle("collapsed");
+      header.textContent = header.textContent.includes("▼")
+        ? header.textContent.replace("▼", "▲")
+        : header.textContent.replace("▲", "▼");
+    }
+  </script>
+<script>
+  // Apply saved theme
+  const savedTheme = localStorage.getItem("themeColor") || "#005B96";
+  document.documentElement.style.setProperty('--primary-color', savedTheme);
+  document.querySelectorAll('.sidebar, .card-header, button').forEach(el => {
+    el.style.backgroundColor = savedTheme;
+  });
+
+  // Update on selection
+  const themeSelect = document.getElementById("theme-select");
+  if (themeSelect) {
+    themeSelect.value = savedTheme;
+    themeSelect.addEventListener("change", function () {
+      localStorage.setItem("themeColor", this.value);
+      location.reload(); // Reapply styles instantly
+    });
+  }
+</script>
+
+<!-- 💬 Chatbot Widget -->
+<button id="chat-toggle-btn">💬 Chat</button>
+
+<div id="chatbot-container">
+  <div id="chatbot-header">📚 StudyBot</div>
+  <div id="chatbot-messages"></div>
+  <div id="chatbot-input">
+    <input type="text" id="chatbot-user-input" placeholder="Ask me something...">
+    <button onclick="handleChat()">Send</button>
+  </div>
+</div>
+
+<script>
+  const responses = {
+    "hello": "Hi there! How can I assist with your studies today?",
+    "upload": "To upload a document, go to the Documents tab and select your file.",
+    "calendar": "You can view and manage your study sessions in the Calendar tab.",
+    "task": "You can add or track tasks in your main dashboard.",
+    "bye": "Good luck with your study session!"
+  };
+
+  function toggleChat() {
+    const chat = document.getElementById("chatbot-container");
+    chat.style.display = chat.style.display === "flex" ? "none" : "flex";
+  }
+
+  function handleChat() {
+    const inputField = document.getElementById("chatbot-user-input");
+    const msg = inputField.value.toLowerCase().trim();
+    if (!msg) return;
+
+    const chatBox = document.getElementById("chatbot-messages");
+    chatBox.innerHTML += `<div><strong>You:</strong> ${msg}</div>`;
+
+    let response = "I'm not sure how to help with that yet.";
+    for (const keyword in responses) {
+      if (msg.includes(keyword)) {
+        response = responses[keyword];
+        break;
+      }
+    }
+
+    chatBox.innerHTML += `<div><strong>Bot:</strong> ${response}</div>`;
+    chatBox.scrollTop = chatBox.scrollHeight;
+    inputField.value = "";
+  }
+
+  document.getElementById("chat-toggle-btn").addEventListener("click", toggleChat);
+</script>
+
+
+</body>
+</html>
