@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Collaboration</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .member-card {
+      background: #fff;
+      padding: 0.75rem;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+    .kanban {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .kanban-column {
+      flex: 1;
+      min-width: 220px;
+      background: #f8f9fa;
+      padding: 1rem;
+      border-radius: 8px;
+    }
+    .task-card {
+      background: white;
+      padding: 0.5rem;
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <h2>📘 MyPlanner</h2>
+      <a href="main planner.html">🏠 Home Page</a>
+      <a href="calendar.html">📅 Calendar</a>
+      <a href="Document Management.html">📂 Documents</a>
+    
+      <a href="integrations.html">🔗 Integrations</a>
+      
+    </aside>
+
+    <main class="content">
+      <div class="banner" style="background-image: url('https://images.unsplash.com/photo-1557682224-5b8590cd9ec5'); height: 160px; border-radius: 12px; background-size: cover; background-position: center; margin-bottom: 2rem;">
+        <h1 style="color:white; background: rgba(0,0,0,0.4); padding: 0.5rem 1rem; border-radius: 8px;">👥 Group Collaboration</h1>
+      <div class="theme-toggle">
+  <label for="theme-select">🎨 Theme:</label>
+  <select id="theme-select">
+    <option value="#005B96">Blue</option>
+    <option value="#2E8B57">Green</option>
+    <option value="#6A5ACD">Purple</option>
+    <option value="#D2691E">Orange</option>
+    <option value="#333333">Dark</option>
+  </select>
+</div>
+</div>
+
+      <div class="card">
+        <div class="card-header">👤 Add Group Member</div>
+        <div class="card-body">
+          <input type="text" id="member-name" placeholder="Name">
+          <input type="text" id="member-role" placeholder="Role">
+          <button onclick="addMember()">Add Member</button>
+          <div id="member-list"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">✅ Assign Group Tasks</div>
+        <div class="card-body">
+          <input type="text" id="task-desc" placeholder="Task description">
+          <input type="text" id="task-member" placeholder="Assigned to (name)">
+          <input type="date" id="task-due">
+          <select id="task-status">
+            <option value="To Do">🟡 To Do</option>
+            <option value="In Progress">🟠 In Progress</option>
+            <option value="Done">🟢 Done</option>
+          </select>
+          <button onclick="addTask()">Add Task</button>
+
+          <div class="kanban">
+            <div class="kanban-column"><h3>🟡 To Do</h3><div id="todo"></div></div>
+            <div class="kanban-column"><h3>🟠 In Progress</h3><div id="inprogress"></div></div>
+            <div class="kanban-column"><h3>🟢 Done</h3><div id="done"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">📝 Shared Notes</div>
+        <div class="card-body">
+          <textarea id="shared-notes" rows="6" placeholder="Group notes..."></textarea>
+          <button onclick="saveNotes()">Save Notes</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const members = JSON.parse(localStorage.getItem("groupMembers")) || [];
+    const tasks = JSON.parse(localStorage.getItem("groupTasks")) || [];
+    const notes = localStorage.getItem("groupNotes") || "";
+
+    document.getElementById("shared-notes").value = notes;
+
+    function addMember() {
+      const name = document.getElementById("member-name").value;
+      const role = document.getElementById("member-role").value;
+      if (name && role) {
+        members.push({ name, role });
+        localStorage.setItem("groupMembers", JSON.stringify(members));
+        renderMembers();
+        document.getElementById("member-name").value = "";
+        document.getElementById("member-role").value = "";
+      }
+    }
+
+    function renderMembers() {
+      const list = document.getElementById("member-list");
+      list.innerHTML = "";
+      members.forEach((m, i) => {
+        const card = document.createElement("div");
+        card.className = "member-card";
+        card.innerHTML = `<strong>${m.name}</strong> – ${m.role}<br>
+        <button onclick="editMember(${i})">Edit</button>
+        <button onclick="deleteMember(${i})">Remove</button>`;
+        list.appendChild(card);
+      });
+    }
+
+    function editMember(i) {
+      const updatedName = prompt("Edit name:", members[i].name);
+      const updatedRole = prompt("Edit role:", members[i].role);
+      if (updatedName && updatedRole) {
+        members[i].name = updatedName;
+        members[i].role = updatedRole;
+        localStorage.setItem("groupMembers", JSON.stringify(members));
+        renderMembers();
+      }
+    }
+
+    function deleteMember(i) {
+      if (confirm("Remove this member?")) {
+        members.splice(i, 1);
+        localStorage.setItem("groupMembers", JSON.stringify(members));
+        renderMembers();
+      }
+    }
+
+    function addTask() {
+      const desc = document.getElementById("task-desc").value;
+      const member = document.getElementById("task-member").value;
+      const dueDate = document.getElementById("task-due").value;
+      const status = document.getElementById("task-status").value;
+      if (desc && member && dueDate && status) {
+        tasks.push({ desc, member, dueDate, status });
+        localStorage.setItem("groupTasks", JSON.stringify(tasks));
+        renderTasks();
+        document.getElementById("task-desc").value = "";
+        document.getElementById("task-member").value = "";
+        document.getElementById("task-due").value = "";
+      }
+    }
+
+    function renderTasks() {
+      const todo = document.getElementById("todo");
+      const progress = document.getElementById("inprogress");
+      const done = document.getElementById("done");
+      todo.innerHTML = progress.innerHTML = done.innerHTML = "";
+
+      tasks.forEach((task, i) => {
+        const card = document.createElement("div");
+        card.className = "task-card";
+        card.innerHTML = `
+          <strong>${task.desc}</strong><br>
+          👤 ${task.member} | 📅 ${task.dueDate}<br>
+          <select onchange="updateStatus(${i}, this.value)">
+            <option ${task.status === "To Do" ? "selected" : ""}>To Do</option>
+            <option ${task.status === "In Progress" ? "selected" : ""}>In Progress</option>
+            <option ${task.status === "Done" ? "selected" : ""}>Done</option>
+          </select>`;
+        if (task.status === "To Do") todo.appendChild(card);
+        else if (task.status === "In Progress") progress.appendChild(card);
+        else done.appendChild(card);
+      });
+    }
+
+    function updateStatus(i, status) {
+      tasks[i].status = status;
+      localStorage.setItem("groupTasks", JSON.stringify(tasks));
+      renderTasks();
+    }
+
+    function saveNotes() {
+      const text = document.getElementById("shared-notes").value;
+      localStorage.setItem("groupNotes", text);
+      alert("Notes saved.");
+    }
+
+    renderMembers();
+    renderTasks();
+  </script>
+<script>
+  // Apply saved theme
+  const savedTheme = localStorage.getItem("themeColor") || "#005B96";
+  document.documentElement.style.setProperty('--primary-color', savedTheme);
+  document.querySelectorAll('.sidebar, .card-header, button').forEach(el => {
+    el.style.backgroundColor = savedTheme;
+  });
+
+  // Update on selection
+  const themeSelect = document.getElementById("theme-select");
+  if (themeSelect) {
+    themeSelect.value = savedTheme;
+    themeSelect.addEventListener("change", function () {
+      localStorage.setItem("themeColor", this.value);
+      location.reload(); // Reapply styles instantly
+    });
+  }
+</script>
+
+</body>
+</html>

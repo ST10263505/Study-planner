@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Documents</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .document-card {
+      background: #fff;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .document-card h4 {
+      margin: 0;
+    }
+    .document-card small {
+      color: #777;
+    }
+    .controls-row {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <h2>📘 MyPlanner</h2>
+      <a href="main planner.html">🏠 Home Page</a>
+      <a href="calendar.html">📅 Calendar</a>
+      
+      <a href="collaboration.html">👥 Collaboration</a>
+      <a href="integrations.html">🔗 Integrations</a>
+      
+    </aside>
+
+    <main class="content">
+      <div class="banner" style="background-image: url('https://images.unsplash.com/photo-1524995997946-a1c2e315a42f'); height: 160px; border-radius: 12px; background-size: cover; background-position: center; margin-bottom: 2rem;">
+        <h1 style="color:white; background: rgba(0,0,0,0.4); padding: 0.5rem 1rem; border-radius: 8px;">📂 Document Manager</h1>
+     <div class="theme-toggle">
+  <label for="theme-select">🎨 Theme:</label>
+  <select id="theme-select">
+    <option value="#005B96">Blue</option>
+    <option value="#2E8B57">Green</option>
+    <option value="#6A5ACD">Purple</option>
+    <option value="#D2691E">Orange</option>
+    <option value="#333333">Dark</option>
+  </select>
+</div>
+ </div>
+
+      <div class="card">
+        <div class="card-header">📤 Upload Document</div>
+        <div class="card-body">
+          <input type="file" id="doc-file" accept=".pdf,.doc,.docx">
+          <input type="text" id="doc-name" placeholder="Document Title">
+          <input type="text" id="doc-category" placeholder="Category / Tag">
+          <button onclick="uploadDocument()">Upload</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">🔍 Search & Filter</div>
+        <div class="card-body">
+          <input type="text" id="search-query" placeholder="Search by name or category..." oninput="renderDocuments()">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">📋 My Documents</div>
+        <div class="card-body" id="document-list"></div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    let documents = JSON.parse(localStorage.getItem("userDocuments")) || [];
+
+    function uploadDocument() {
+      const fileInput = document.getElementById("doc-file");
+      const name = document.getElementById("doc-name").value;
+      const category = document.getElementById("doc-category").value;
+
+      if (!fileInput.files.length || !name || !category) {
+        return alert("Please fill in all fields.");
+      }
+
+      const file = fileInput.files[0];
+      const allowed = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ];
+
+      if (!allowed.includes(file.type)) {
+        return alert("Unsupported file type.");
+      }
+
+      documents.push({
+        name,
+        category,
+        type: file.type,
+        size: file.size,
+        date: new Date().toLocaleDateString()
+      });
+
+      localStorage.setItem("userDocuments", JSON.stringify(documents));
+      renderDocuments();
+
+      fileInput.value = "";
+      document.getElementById("doc-name").value = "";
+      document.getElementById("doc-category").value = "";
+    }
+
+    function renderDocuments() {
+      const list = document.getElementById("document-list");
+      list.innerHTML = "";
+      const q = document.getElementById("search-query").value.toLowerCase();
+
+      documents
+        .filter(doc =>
+          doc.name.toLowerCase().includes(q) || doc.category.toLowerCase().includes(q)
+        )
+        .forEach((doc, index) => {
+          const div = document.createElement("div");
+          div.className = "document-card";
+          div.innerHTML = `
+            <h4>${doc.name}</h4>
+            <small>📁 ${doc.category} | ${doc.type.split('/')[1].toUpperCase()} | ${Math.round(doc.size / 1024)} KB | 📅 ${doc.date}</small><br>
+            <button onclick="deleteDoc(${index})">Delete</button>
+          `;
+          list.appendChild(div);
+        });
+    }
+
+    function deleteDoc(index) {
+      if (confirm("Delete this document?")) {
+        documents.splice(index, 1);
+        localStorage.setItem("userDocuments", JSON.stringify(documents));
+        renderDocuments();
+      }
+    }
+
+    renderDocuments();
+  </script>
+<script>
+  // Apply saved theme
+  const savedTheme = localStorage.getItem("themeColor") || "#005B96";
+  document.documentElement.style.setProperty('--primary-color', savedTheme);
+  document.querySelectorAll('.sidebar, .card-header, button').forEach(el => {
+    el.style.backgroundColor = savedTheme;
+  });
+
+  // Update on selection
+  const themeSelect = document.getElementById("theme-select");
+  if (themeSelect) {
+    themeSelect.value = savedTheme;
+    themeSelect.addEventListener("change", function () {
+      localStorage.setItem("themeColor", this.value);
+      location.reload(); // Reapply styles instantly
+    });
+  }
+</script>
+
+</body>
+</html>
